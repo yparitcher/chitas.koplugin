@@ -6,7 +6,7 @@ local _ = require("gettext")
 local ffi = require("ffi")
 local C = ffi.C
 require("ffi/rtc_h")
-local libzmanim = ffi.load("plugins/tanya.koplugin/libzmanim.so")
+local libzmanim = ffi.load("plugins/chitas.koplugin/libzmanim.so")
 require("libzmanim")
 
 local Chitas = WidgetContainer:new{
