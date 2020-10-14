@@ -27,6 +27,7 @@ local Chitas = WidgetContainer:new{
 
 function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("chumash", {category="none", event="Chumash", title=_("Chumash"), filemanager=true,})
+    Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), filemanager=true,})
 end
 
 function Chitas:init()
@@ -46,6 +47,14 @@ function Chitas:hdateNow()
     return libzmanim.convertDate(tm[0])
 end
 
+function Chitas:getParshah()
+    local hdate = self:hdateNow()
+    local shuir = ffi.new("char[?]", 100)
+    libzmanim.chumash(hdate, shuir)
+    local _, _, text = ffi.string(shuir):find("(.-)\n")
+    return text:gsub(" ", "_")
+end
+
 function Chitas:displayTanya()
     if FFIUtil.basename(self.document.file) == "tanya.epub" then
         local hdate = self:hdateNow()
@@ -53,12 +62,11 @@ function Chitas:displayTanya()
         libzmanim.tanya(hdate, shuir)
         local text = ffi.string(shuir)
         local popup = InfoMessage:new{
-            face = Font:getFace("ezra.ttf", 24),
+            face = Font:getFace("ezra.ttf", 32),
             show_icon = false,
             text = text,
             lang = "he",
             para_direction_rtl = true,
-            timeout = 3,
         }
         UIManager:show(popup)
     end
@@ -75,27 +83,32 @@ function ReadHistory:removeItemByDirectory(directory)
     self:ensureLastFile()
 end
 
-function Chitas:onChumash()
-    local chumashPath = "/mnt/us/ebooks/epub/חומש/"
-    local hdate = self:hdateNow()
-    local shuir = ffi.new("char[?]", 100)
-    libzmanim.chumash(hdate, shuir)
-    local _, _, text = ffi.string(shuir):find("(.-)\n")
-    text = text:gsub(" ", "_")
-    local path = chumashPath .. text .. ".epub"
-    if util.fileExists(path) then
+function Chitas:switchToShuir(path, name)
+    local file = path .. name .. ".epub"
+    if util.fileExists(file) then
         local ReaderUI = require("apps/reader/readerui")
-        ReaderUI:showReader(path)
-        ReadHistory:removeItemByDirectory(chumashPath)
+        ReaderUI:showReader(file)
+        ReadHistory:removeItemByDirectory(path)
     end
     local popup = InfoMessage:new{
-        face = Font:getFace("ezra.ttf", 24),
+        face = Font:getFace("ezra.ttf", 32),
         show_icon = false,
-        text = text,
+        text = name,
         lang = "he",
         para_direction_rtl = true,
+        timeout = 3,
     }
     UIManager:show(popup)
+end
+
+function Chitas:onChumash()
+    local parshah = self:getParshah()
+    self:switchToShuir("/mnt/us/ebooks/epub/חומש/", parshah)
+end
+
+function Chitas:onShnaimMikrah()
+    local parshah = self:getParshah()
+    self:switchToShuir("/mnt/us/ebooks/epub/שניים מקרא/", parshah)
 end
 
 return Chitas
