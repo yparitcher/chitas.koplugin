@@ -1,10 +1,12 @@
 local Device = require("device")
+local Dispatcher = require("dispatcher")
 local FFIUtil = require("ffi/util")
+local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local ReadHistory = require("readhistory")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local util = require("ffi/util")
+local util = require("util")
 local _ = require("gettext")
 local ffi = require("ffi")
 local C = ffi.C
@@ -23,14 +25,17 @@ local Chitas = WidgetContainer:new{
     name = "chitas",
 }
 
+function Chitas:onDispatcherRegisterActions()
+    Dispatcher:registerAction("chumash", {category="none", event="Chumash", title=_("Chumash"), filemanager=true,})
+end
+
 function Chitas:init()
     if self.ui.view then -- Reader
         table.insert(self.ui.postReaderCallback, function()
             self:displayTanya()
         end)
     end
---temp
-self:openChumash()
+    self:onDispatcherRegisterActions()
 end
 
 function Chitas:hdateNow()
@@ -42,16 +47,18 @@ function Chitas:hdateNow()
 end
 
 function Chitas:displayTanya()
-    if util.basename(self.document.file) == "tanya.epub" then
+    if FFIUtil.basename(self.document.file) == "tanya.epub" then
         local hdate = self:hdateNow()
         local shuir = ffi.new("char[?]", 100)
         libzmanim.tanya(hdate, shuir)
         local text = ffi.string(shuir)
         local popup = InfoMessage:new{
+            face = Font:getFace("ezra.ttf", 24),
             show_icon = false,
             text = text,
             lang = "he",
             para_direction_rtl = true,
+            timeout = 3,
         }
         UIManager:show(popup)
     end
@@ -68,28 +75,27 @@ function ReadHistory:removeItemByDirectory(directory)
     self:ensureLastFile()
 end
 
-function Chitas:openChumash()
+function Chitas:onChumash()
+    local chumashPath = "/mnt/us/ebooks/epub/חומש/"
     local hdate = self:hdateNow()
-    local simchastorah = hdate.EY and 22 or 23
-    local parshah = libzmanim.NOPARSHAH
-    while (parshah == libzmanim.NOPARSHAH) do
-        libzmanim.hdateaddday(hdate, 7 - hdate.wday)
-        parshah = libzmanim.getparshah(hdate)
-    end
-    if parshah == libzmanim.BERESHIT and (hdate.day < simchastorah) then
-        parshah = libzmanim.VZOT_HABERACHAH
+    local shuir = ffi.new("char[?]", 100)
+    libzmanim.chumash(hdate, shuir)
+    local _, _, text = ffi.string(shuir):find("(.-)\n")
+    text = text:gsub(" ", "_")
+    local path = chumashPath .. text .. ".epub"
+    if util.fileExists(path) then
+        local ReaderUI = require("apps/reader/readerui")
+        ReaderUI:showReader(path)
+        ReadHistory:removeItemByDirectory(chumashPath)
     end
     local popup = InfoMessage:new{
+        face = Font:getFace("ezra.ttf", 24),
         show_icon = false,
-        text = tonumber(parshah), --text,
+        text = text,
         lang = "he",
         para_direction_rtl = true,
     }
     UIManager:show(popup)
-    local path = "/AUR/koreader/test/חומש(rashi)/פרשת_אמור.epub" --"/mnt/us/" .. tonumber(parshah) .. ".epub"
---    local ReaderUI = require("apps/reader/readerui")
---    ReaderUI:showReader(path)
-    ReadHistory:removeItemByDirectory(FFIUtil.dirname(path))
 end
 
 return Chitas
