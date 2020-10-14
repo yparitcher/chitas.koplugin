@@ -1,5 +1,6 @@
 local Device = require("device")
 local Dispatcher = require("dispatcher")
+local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
@@ -39,36 +40,38 @@ function Chitas:init()
     self:onDispatcherRegisterActions()
 end
 
-function Chitas:hdateNow()
+function Chitas:popup(text)
+    local popup = InfoMessage:new{
+        face = Font:getFace("ezra.ttf", 32),
+        show_icon = false,
+        text = text,
+        lang = "he",
+        para_direction_rtl = true,
+    }
+    UIManager:show(popup)
+end
+
+function Chitas:getShuir(func)
     local t = ffi.new("time_t[1]")
     t[0] = C.time(nil)
     local tm = ffi.new("struct tm") -- luacheck: ignore
     tm = C.localtime(t)
-    return libzmanim.convertDate(tm[0])
+    local hdate = libzmanim.convertDate(tm[0])
+    local shuir = ffi.new("char[?]", 100)
+    func(hdate, shuir)
+    return ffi.string(shuir)
 end
 
 function Chitas:getParshah()
-    local hdate = self:hdateNow()
-    local shuir = ffi.new("char[?]", 100)
-    libzmanim.chumash(hdate, shuir)
-    local _, _, text = ffi.string(shuir):find("(.-)\n")
-    return text:gsub(" ", "_")
+    local shuir = self:getShuir(libzmanim.chumash)
+    local _, _, parshah, day = shuir:find("(.-)\n(.-) עם פירש״י")
+    return parshah:gsub(" ", "_"), day
 end
 
 function Chitas:displayTanya()
     if FFIUtil.basename(self.document.file) == "tanya.epub" then
-        local hdate = self:hdateNow()
-        local shuir = ffi.new("char[?]", 100)
-        libzmanim.tanya(hdate, shuir)
-        local text = ffi.string(shuir)
-        local popup = InfoMessage:new{
-            face = Font:getFace("ezra.ttf", 32),
-            show_icon = false,
-            text = text,
-            lang = "he",
-            para_direction_rtl = true,
-        }
-        UIManager:show(popup)
+        local shuir = self:getShuir(libzmanim.tanya)
+        self:popup(shuir)
     end
 end
 
@@ -90,24 +93,31 @@ function Chitas:switchToShuir(path, name)
         ReaderUI:showReader(file)
         ReadHistory:removeItemByDirectory(path)
     end
-    local popup = InfoMessage:new{
-        face = Font:getFace("ezra.ttf", 32),
-        show_icon = false,
-        text = name,
-        lang = "he",
-        para_direction_rtl = true,
-        timeout = 3,
-    }
-    UIManager:show(popup)
+    self:popup(name)
+end
+
+function Chitas:goToChapter(chapter)
+    for _, k in ipairs(self.ui.toc.toc) do
+        if k.title == chapter then
+            self.ui:handleEvent(Event:new("GotoPage", tonumber(k.page)))
+            break
+        end
+    end
+    self:popup(chapter)
 end
 
 function Chitas:onChumash()
-    local parshah = self:getParshah()
-    self:switchToShuir("/mnt/us/ebooks/epub/חומש/", parshah)
+    local root = "/mnt/us/ebooks/epub/חומש/"
+    local parshah, day = self:getParshah()
+    if self.ui.view and self.ui.toc.toc ~= nil then --and self.ui.document.file == root .. name .. ".epub" then
+        self:goToChapter(day)
+    else
+        self:switchToShuir(root, parshah)
+    end
 end
 
 function Chitas:onShnaimMikrah()
-    local parshah = self:getParshah()
+    local parshah, _ = self:getParshah()
     self:switchToShuir("/mnt/us/ebooks/epub/שניים מקרא/", parshah)
 end
 
