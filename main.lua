@@ -110,7 +110,7 @@ function Chitas:onChumash()
     local root = "/mnt/us/ebooks/epub/חומש/"
     local parshah, day = self:getParshah()
     if self.ui.view and self.ui.toc.toc ~= nil then --and self.ui.document.file == root .. name .. ".epub" then
-        self:goToChapter(day)
+        self:goToChapter(parshah .. " - " .. day)
     else
         self:switchToShuir(root, parshah)
     end
