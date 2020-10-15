@@ -40,13 +40,14 @@ function Chitas:init()
     self:onDispatcherRegisterActions()
 end
 
-function Chitas:popup(text)
+function Chitas:popup(text, timeout)
     local popup = InfoMessage:new{
         face = Font:getFace("ezra.ttf", 32),
         show_icon = false,
         text = text,
         lang = "he",
         para_direction_rtl = true,
+        timeout = timeout,
     }
     UIManager:show(popup)
 end
@@ -93,7 +94,7 @@ function Chitas:switchToShuir(path, name)
         ReaderUI:showReader(file)
         ReadHistory:removeItemByDirectory(path)
     end
-    self:popup(name)
+    self:popup(name, 3)
 end
 
 function Chitas:goToChapter(chapter)
@@ -103,14 +104,14 @@ function Chitas:goToChapter(chapter)
             break
         end
     end
-    self:popup(chapter)
+    self:popup(chapter, 3)
 end
 
 function Chitas:onChumash()
     local root = "/mnt/us/ebooks/epub/חומש/"
     local parshah, day = self:getParshah()
-    if self.ui.view and self.ui.toc.toc ~= nil then --and self.ui.document.file == root .. name .. ".epub" then
-        self:goToChapter(parshah .. " - " .. day)
+    if self.ui.view and self.ui.toc.toc ~= nil and self.ui.document.file == root .. parshah .. ".epub" then
+        self:goToChapter(parshah:gsub("_", " ") .. " - " .. day)
     else
         self:switchToShuir(root, parshah)
     end
