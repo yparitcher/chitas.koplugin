@@ -149,9 +149,9 @@ function Chitas:onRambam()
     local sefer = "???????"
     local shuir = self:getShuir(libzmanim.rambam)
     local _, _, perek = shuir:find("רמב״ם\n(.*)")
-require("logger").warn("@@@@", perek)
+--require("logger").warn("@@@@", perek)
     perek = perek:gsub("\n", " - ")
-require("logger").warn("@@@@", perek)
+--require("logger").warn("@@@@", perek)
     if self.ui.view and self.ui.toc.toc ~= nil and util.stringStartsWith(self.ui.document.file, root) then
         self:goToChapter(" " .. perek)
 --require("logger").warn("@@@@", self.ui.toc.toc)
