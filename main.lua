@@ -30,6 +30,7 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("chumash", {category="none", event="Chumash", title=_("Chumash"), filemanager=true,})
     Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), filemanager=true,})
     Dispatcher:registerAction("rambam", {category="none", event="Rambam", title=_("Rambam"), filemanager=true,})
+    Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), filemanager=true,})
 end
 
 function Chitas:init()
@@ -118,6 +119,16 @@ function Chitas:goToChapter(chapter)
     self:popup(chapter, 3)
 end
 
+function Chitas:onTanya()
+    if self.ui.view and  FFIUtil.basename(self.ui.document.file) == "tanya.epub" then
+        local shuir = self:getShuir(libzmanim.tanya)
+         self:popup(shuir)
+    else
+        local ReaderUI = require("apps/reader/readerui")
+        ReaderUI:showReader("/mnt/us/ebooks/epub/tanya.epub")
+    end
+end
+
 function Chitas:onChumash()
     local root = "/mnt/us/ebooks/epub/חומש/"
     local parshah, day = self:getParshah()
@@ -143,7 +154,7 @@ require("logger").warn("@@@@", perek)
 require("logger").warn("@@@@", perek)
     if self.ui.view and self.ui.toc.toc ~= nil and util.stringStartsWith(self.ui.document.file, root) then
         self:goToChapter(" " .. perek)
-require("logger").warn("@@@@", shuir)
+--require("logger").warn("@@@@", self.ui.toc.toc)
     else
         callback = ReadHistory:getFileByDirectory(root)
         callback()
