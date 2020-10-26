@@ -29,6 +29,7 @@ local Chitas = WidgetContainer:new{
 function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("chumash", {category="none", event="Chumash", title=_("Chumash"), filemanager=true,})
     Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), filemanager=true,})
+    Dispatcher:registerAction("rambam", {category="none", event="Rambam", title=_("Rambam"), filemanager=true,})
 end
 
 function Chitas:init()
@@ -78,13 +79,22 @@ end
 
 function ReadHistory:removeItemByDirectory(directory)
     assert(self ~= nil)
-    for i = #self.hist, 1, -1 do
+    for i=1, #self.hist do
         if FFIUtil.realpath(FFIUtil.dirname(self.hist[i].file)) == FFIUtil.realpath(directory) then
             self:removeItem(self.hist[i])
             break
         end
     end
     self:ensureLastFile()
+end
+
+function ReadHistory:getFileByDirectory(directory)
+    assert(self ~= nil)
+    for i=1, #self.hist do
+        if FFIUtil.realpath(FFIUtil.dirname(self.hist[i].file)) == FFIUtil.realpath(directory) then
+             return self.hist[i].callback
+        end
+    end
 end
 
 function Chitas:switchToShuir(path, name)
@@ -100,6 +110,7 @@ end
 function Chitas:goToChapter(chapter)
     for _, k in ipairs(self.ui.toc.toc) do
         if k.title == chapter then
+            self.ui.link:addCurrentLocationToStack()
             self.ui:handleEvent(Event:new("GotoPage", tonumber(k.page)))
             break
         end
@@ -120,6 +131,23 @@ end
 function Chitas:onShnaimMikrah()
     local parshah, _ = self:getParshah()
     self:switchToShuir("/mnt/us/ebooks/epub/שניים מקרא/", parshah)
+end
+
+function Chitas:onRambam()
+    local root = "/mnt/us/ebooks/epub/רמבם/"
+    local sefer = "???????"
+    local shuir = self:getShuir(libzmanim.rambam)
+    local _, _, perek = shuir:find("רמב״ם\n(.*)")
+require("logger").warn("@@@@", perek)
+    perek = perek:gsub("\n", " - ")
+require("logger").warn("@@@@", perek)
+    if self.ui.view and self.ui.toc.toc ~= nil and util.stringStartsWith(self.ui.document.file, root) then
+        self:goToChapter(" " .. perek)
+require("logger").warn("@@@@", shuir)
+    else
+        callback = ReadHistory:getFileByDirectory(root)
+        callback()
+    end
 end
 
 return Chitas
