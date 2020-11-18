@@ -31,6 +31,8 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), filemanager=true,})
     Dispatcher:registerAction("rambam", {category="none", event="Rambam", title=_("Rambam"), filemanager=true,})
     Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), filemanager=true,})
+    Dispatcher:registerAction("hayomyom", {category="none", event="ChitasDirectory", title=_("Hayom Yom"), filemanager=true, arg="/mnt/us/ebooks/epub/היום יום/",})
+    Dispatcher:registerAction("bookeeper", {category="none", event="ChitasDirectory", title=_("Bookeeper"), filemanager=true, arg="/mnt/us/ebooks/books/",})
 end
 
 function Chitas:init()
@@ -98,6 +100,13 @@ function ReadHistory:getFileByDirectory(directory)
     end
 end
 
+function Chitas:onChitasDirectory(directory)
+    local callback = ReadHistory:getFileByDirectory(directory)
+    if callback then
+        callback()
+    end
+end
+
 function Chitas:switchToShuir(path, name)
     local file = path .. name .. ".epub"
     if util.fileExists(file) then
@@ -105,7 +114,7 @@ function Chitas:switchToShuir(path, name)
         ReaderUI:showReader(file)
         ReadHistory:removeItemByDirectory(path)
     end
-    self:popup(name, 3)
+    self:popup(name, 1)
 end
 
 function Chitas:goToChapter(chapter)
@@ -156,8 +165,7 @@ function Chitas:onRambam()
         self:goToChapter(" " .. perek)
 --require("logger").warn("@@@@", self.ui.toc.toc)
     else
-        callback = ReadHistory:getFileByDirectory(root)
-        callback()
+        self:onChitasDirectory(root)
     end
 end
 
