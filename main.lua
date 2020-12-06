@@ -33,6 +33,8 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), filemanager=true,})
     Dispatcher:registerAction("hayomyom", {category="none", event="ChitasDirectory", title=_("Hayom Yom"), filemanager=true, arg="/mnt/us/ebooks/epub/היום יום/",})
     Dispatcher:registerAction("bookeeper", {category="none", event="ChitasDirectory", title=_("Bookeeper"), filemanager=true, arg="/mnt/us/ebooks/books/",})
+    Dispatcher:registerAction("leftsidedown", {category="none", event="Sefer", title=_("Left Side Down"), filemanager=true, arg="/mnt/us/ebooks/sefer/29 תשכא א.pdf",})
+    Dispatcher:registerAction("leftsideup", {category="none", event="Sefer", title=_("Left Side Up"), filemanager=true, arg="/mnt/us/ebooks/sefer/20.pdf",})
 end
 
 function Chitas:init()
@@ -98,6 +100,11 @@ function ReadHistory:getFileByDirectory(directory)
              return self.hist[i].callback
         end
     end
+end
+
+function Chitas:onSefer(file)
+    local ReaderUI = require("apps/reader/readerui")
+    ReaderUI:showReader(file)
 end
 
 function Chitas:onChitasDirectory(directory)
