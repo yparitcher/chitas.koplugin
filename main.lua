@@ -33,7 +33,7 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), filemanager=true,})
     Dispatcher:registerAction("hayomyom", {category="none", event="ChitasDirectory", title=_("Hayom Yom"), filemanager=true, arg="/mnt/us/ebooks/epub/היום יום/",})
     Dispatcher:registerAction("bookeeper", {category="none", event="ChitasDirectory", title=_("Bookeeper"), filemanager=true, arg="/mnt/us/ebooks/books/",})
-    Dispatcher:registerAction("leftsidedown", {category="none", event="Sefer", title=_("Left Side Down"), filemanager=true, arg="/mnt/us/ebooks/sefer/29 תשכא א.pdf",})
+    Dispatcher:registerAction("leftsidedown", {category="none", event="Sefer", title=_("Left Side Down"), filemanager=true, arg="/mnt/us/ebooks/5721/30 תשכא ב.pdf",})
     Dispatcher:registerAction("leftsideup", {category="none", event="Sefer", title=_("Left Side Up"), filemanager=true, arg="/mnt/us/ebooks/sefer/20.pdf",})
 end
 
@@ -54,18 +54,23 @@ function Chitas:popup(text, timeout)
         lang = "he",
         para_direction_rtl = true,
         timeout = timeout,
+        name = "Chitas_popup",
     }
     UIManager:show(popup)
 end
 
-function Chitas:getShuir(func)
+function Chitas:getShuir(func, offset)
     local t = ffi.new("time_t[1]")
     t[0] = C.time(nil)
     local tm = ffi.new("struct tm") -- luacheck: ignore
     tm = C.localtime(t)
-    local hdate = libzmanim.convertDate(tm[0])
+    local hdate = ffi.new("hdate[1]")
+    hdate[0] = libzmanim.convertDate(tm[0])
+    if offset then
+        libzmanim.hdateaddday(hdate, offset)
+    end
     local shuir = ffi.new("char[?]", 100)
-    func(hdate, shuir)
+    func(hdate[0], shuir)
     return ffi.string(shuir)
 end
 
@@ -78,8 +83,12 @@ end
 function Chitas:displayTanya()
     if FFIUtil.basename(self.document.file) == "tanya.epub" then
         local shuir = self:getShuir(libzmanim.tanya)
-        self:popup(shuir)
+        local tomorrow = self:getShuir(libzmanim.tanya, 1)
+        local _, _, text = tomorrow:find("תניא\n(.*)\n.*")
+        self:popup(shuir .. "\n~~~\n" .. text)
+        return true
     end
+    return false
 end
 
 function ReadHistory:removeItemByDirectory(directory)
@@ -136,10 +145,7 @@ function Chitas:goToChapter(chapter)
 end
 
 function Chitas:onTanya()
-    if self.ui.view and  FFIUtil.basename(self.ui.document.file) == "tanya.epub" then
-        local shuir = self:getShuir(libzmanim.tanya)
-         self:popup(shuir)
-    else
+    if not self.ui.view or not self:displayTanya() then
         local ReaderUI = require("apps/reader/readerui")
         ReaderUI:showReader("/mnt/us/ebooks/epub/tanya.epub")
     end
