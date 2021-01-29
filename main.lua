@@ -85,7 +85,8 @@ function Chitas:displayTanya()
         local shuir = self:getShuir(libzmanim.tanya)
         local tomorrow = self:getShuir(libzmanim.tanya, 1)
         local _, _, text = tomorrow:find("תניא\n(.*)\n.*")
-        self:popup(shuir .. "\n~~~\n" .. text)
+        if not text then text = tomorrow or " " end
+        self:popup(shuir .. "\n    ~~~\n" .. text)
         return true
     end
     return false
