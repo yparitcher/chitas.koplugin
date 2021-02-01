@@ -169,7 +169,7 @@ end
 
 function Chitas:onRambam()
     local root = "/mnt/us/ebooks/epub/רמבם/"
-    local sefer = "???????"
+    --local sefer = "???????"
     local shuir = self:getShuir(libzmanim.rambam)
     local _, _, perek = shuir:find("רמב״ם\n(.*)")
 --require("logger").warn("@@@@", perek)
