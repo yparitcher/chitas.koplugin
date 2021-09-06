@@ -33,8 +33,9 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), filemanager=true,})
     Dispatcher:registerAction("hayomyom", {category="none", event="ChitasDirectory", title=_("Hayom Yom"), filemanager=true, arg="/mnt/us/ebooks/epub/היום יום/",})
     Dispatcher:registerAction("bookeeper", {category="none", event="ChitasDirectory", title=_("Bookeeper"), filemanager=true, arg="/mnt/us/ebooks/books/",})
-    Dispatcher:registerAction("leftsidedown", {category="none", event="Sefer", title=_("Left Side Down"), filemanager=true, arg="/mnt/us/ebooks/5721/30 תשכא ב.pdf",})
-    Dispatcher:registerAction("leftsideup", {category="none", event="Sefer", title=_("Left Side Up"), filemanager=true, arg="/mnt/us/ebooks/sefer/20.pdf",})
+    Dispatcher:registerAction("leftsidedown", {category="none", event="Sefer", title=_("Left Side Down"), filemanager=true, arg="/mnt/us/ebooks/sefer/לב תשכב א.pdf",})
+    Dispatcher:registerAction("leftsideup", {category="none", event="Sefer", title=_("Left Side Up"), filemanager=true, arg="/mnt/us/ebooks/sefer/כ''ב (תשכ''ב-תשכ''ג).pdf",})
+    Dispatcher:registerAction("sicha", {category="none", event="Sefer", title=_("Sicha"), filemanager=true, arg="/mnt/us/ebooks/likuteisichos/BOOK489.pdf",})
 end
 
 function Chitas:init()
@@ -142,7 +143,7 @@ function Chitas:goToChapter(chapter)
             break
         end
     end
-    self:popup(chapter, 3)
+    self:popup(chapter, 1.2)
 end
 
 function Chitas:onTanya()
