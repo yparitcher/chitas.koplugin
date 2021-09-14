@@ -27,12 +27,12 @@ local Chitas = WidgetContainer:new{
 }
 
 function Chitas:onDispatcherRegisterActions()
-    Dispatcher:registerAction("chumash", {category="none", event="Chumash", title=_("Chumash"), filemanager=true,})
-    Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), filemanager=true,})
-    Dispatcher:registerAction("rambam", {category="none", event="Rambam", title=_("Rambam"), filemanager=true,})
-    Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), filemanager=true,})
-    Dispatcher:registerAction("hayomyom", {category="none", event="ChitasDirectory", title=_("Hayom Yom"), filemanager=true, arg="/mnt/us/ebooks/epub/היום יום/",})
-    Dispatcher:registerAction("bookeeper", {category="none", event="ChitasDirectory", title=_("Bookeeper"), filemanager=true, arg="/mnt/us/ebooks/books/",})
+    Dispatcher:registerAction("chumash", {category="none", event="Chumash", title=_("Chumash"), general=true,})
+    Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), general=true,})
+    Dispatcher:registerAction("rambam", {category="none", event="Rambam", title=_("Rambam"), general=true,})
+    Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), general=true,})
+    Dispatcher:registerAction("hayomyom", {category="none", event="ChitasDirectory", title=_("Hayom Yom"), general=true, arg="/mnt/us/ebooks/epub/היום יום/",})
+    Dispatcher:registerAction("bookeeper", {category="none", event="ChitasDirectory", title=_("Bookeeper"), general=true, arg="/mnt/us/ebooks/books/",})
 end
 
 function Chitas:init()
