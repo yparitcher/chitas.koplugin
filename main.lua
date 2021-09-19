@@ -13,10 +13,11 @@ local ffi = require("ffi")
 local C = ffi.C
 require("ffi/rtc_h")
 local libzmanim
-if Device:isKindle() then
-    libzmanim = ffi.load("plugins/chitas.koplugin/libzmanim.so")
-elseif Device:isEmulator() then
-    libzmanim = ffi.load("plugins/chitas.koplugin/libzmanim-linux.so")
+-- Requires libzmanim
+-- libzmanim.lua (ffi cdecl) in lua package path /usr/local/ or ~/luarocks/ lua/5.1/libzmanim.lua
+-- libzmanim.so in linker path /usr/lib/
+if Device:isKindle() or Device:isEmulator() then
+    libzmanim = ffi.load("libzmanim.so")
 else
     return { disabled = true, }
 end
