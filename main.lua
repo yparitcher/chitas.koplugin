@@ -32,8 +32,6 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), general=true,})
     Dispatcher:registerAction("rambam", {category="none", event="Rambam", title=_("Rambam"), general=true,})
     Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), general=true,})
-    Dispatcher:registerAction("hayomyom", {category="none", event="ChitasDirectory", title=_("Hayom Yom"), general=true, arg="/mnt/us/ebooks/epub/היום יום/",})
-    Dispatcher:registerAction("bookeeper", {category="none", event="ChitasDirectory", title=_("Bookeeper"), general=true, arg="/mnt/us/ebooks/books/",})
 end
 
 function Chitas:init()
@@ -68,7 +66,7 @@ function Chitas:getShuir(func, offset)
     if offset then
         libzmanim.hdateaddday(hdate, offset)
     end
-    local shuir = ffi.new("char[?]", 100)
+    local shuir = ffi.new("char[?]", 250)
     func(hdate[0], shuir)
     return ffi.string(shuir)
 end
@@ -100,22 +98,6 @@ function ReadHistory:removeItemByDirectory(directory)
         end
     end
     self:ensureLastFile()
-end
-
-function ReadHistory:getFileByDirectory(directory)
-    assert(self ~= nil)
-    for i=1, #self.hist do
-        if FFIUtil.realpath(FFIUtil.dirname(self.hist[i].file)) == FFIUtil.realpath(directory) then
-             return self.hist[i].callback
-        end
-    end
-end
-
-function Chitas:onChitasDirectory(directory)
-    local callback = ReadHistory:getFileByDirectory(directory)
-    if callback then
-        callback()
-    end
 end
 
 function Chitas:switchToShuir(path, name)
@@ -173,7 +155,7 @@ function Chitas:onRambam()
         self:goToChapter(" " .. perek)
 --require("logger").warn("@@@@", self.ui.toc.toc)
     else
-        self:onChitasDirectory(root)
+        self.ui:handleEvent(Event:new("BookShortcut", root))
     end
 end
 
