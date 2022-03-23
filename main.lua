@@ -1,6 +1,10 @@
-local Device = require("device")
+-- Requires libzmanim
+-- luarocks --lua-version=5.1 install libzmanim CC=arm-kindlepw2-linux-gnueabi-gcc --tree=rocks
+-- libzmanim.lua (ffi cdecl) in lua package path /usr/local/ or ~/luarocks/ lua/5.1/libzmanim.lua
+-- libzmanim.so in linker path /usr/lib/
+local libzmanim = require("libzmanim_load")
 
-if not (Device:isKindle() or Device:isEmulator()) then
+if not libzmanim then
     return { disabled = true, }
 end
 
@@ -18,13 +22,9 @@ local ffi = require("ffi")
 local C = ffi.C
 require("ffi/rtc_h")
 
--- Requires libzmanim
--- libzmanim.lua (ffi cdecl) in lua package path /usr/local/ or ~/luarocks/ lua/5.1/libzmanim.lua
--- libzmanim.so in linker path /usr/lib/
-local libzmanim = require("libzmanim_load")
-
 local Chitas = WidgetContainer:new{
     name = "chitas",
+    base = (G_reader_settings:readSetting("home_dir") or require("apps/filemanager/filemanagerutil").getDefaultDir()) .. "/epub/",
 }
 
 function Chitas:onDispatcherRegisterActions()
@@ -124,12 +124,12 @@ end
 function Chitas:onTanya()
     if not self.ui.view or not self:displayTanya() then
         local ReaderUI = require("apps/reader/readerui")
-        ReaderUI:showReader("/mnt/us/ebooks/epub/tanya.epub")
+        ReaderUI:showReader(self.base .. "tanya.epub")
     end
 end
 
 function Chitas:onChumash()
-    local root = "/mnt/us/ebooks/epub/חומש/"
+    local root = self.base .. "חומש/"
     local parshah, day = self:getParshah()
     if self.ui.view and self.ui.toc.toc ~= nil and self.ui.document.file == root .. parshah .. ".epub" then
         self:goToChapter(parshah:gsub("_", " ") .. " - " .. day)
@@ -140,11 +140,11 @@ end
 
 function Chitas:onShnaimMikrah()
     local parshah, _ = self:getParshah()
-    self:switchToShuir("/mnt/us/ebooks/epub/שניים מקרא/", parshah)
+    self:switchToShuir(self.base .. "שניים מקרא/", parshah)
 end
 
 function Chitas:onRambam()
-    local root = "/mnt/us/ebooks/epub/רמבם/"
+    local root = self.base .. "רמבם/"
     --local sefer = "???????"
     local shuir = self:getShuir(libzmanim.rambam)
     local _, _, perek = shuir:find("רמב״ם\n(.*)")
