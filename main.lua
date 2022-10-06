@@ -15,14 +15,14 @@ local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local ReadHistory = require("readhistory")
 local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local Widget = require("ui/widget/widget")
 local util = require("util")
 local _ = require("gettext")
 local ffi = require("ffi")
 local C = ffi.C
 require("ffi/rtc_h")
 
-local Chitas = WidgetContainer:new{
+local Chitas = Widget:extend{
     name = "chitas",
     base = (G_reader_settings:readSetting("home_dir") or require("apps/filemanager/filemanagerutil").getDefaultDir()) .. "/epub/",
 }
