@@ -9,6 +9,7 @@ if not libzmanim then
 end
 
 local Dispatcher = require("dispatcher")
+local DocSettings = require("docsettings")
 local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local Font = require("ui/font")
@@ -25,6 +26,7 @@ require("ffi/rtc_h")
 local Chitas = Widget:extend{
     name = "chitas",
     base = (G_reader_settings:readSetting("home_dir") or require("apps/filemanager/filemanagerutil").getDefaultDir()) .. "/epub/",
+    chapter = nil,
 }
 
 function Chitas:onDispatcherRegisterActions()
@@ -34,12 +36,15 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), general=true,})
 end
 
-function Chitas:init()
-    if self.ui.view then -- Reader
-        table.insert(self.ui.postReaderCallback, function()
-            self:displayTanya()
-        end)
+function Chitas:onReaderReady()
+    if Chitas.chapter then
+        self:goToChapter(Chitas.chapter)
+        Chitas.chapter = nil
     end
+    self:displayTanya()
+end
+
+function Chitas:init()
     self:onDispatcherRegisterActions()
 end
 
@@ -100,14 +105,22 @@ function ReadHistory:removeItemByDirectory(directory)
     self:ensureLastFile()
 end
 
+function Chitas:isNotRecent(file_path)
+    local mtime = DocSettings:getLastSaveTime(file_path) or 0
+    return os.time() - mtime > 604800
+end
+
 function Chitas:switchToShuir(path, name)
     local file = path .. name .. ".epub"
+    local ret
     if util.fileExists(file) then
+        ret = self:isNotRecent(file)
         local ReaderUI = require("apps/reader/readerui")
         ReaderUI:showReader(file)
         ReadHistory:removeItemByDirectory(path)
     end
     self:popup(name, 1)
+    return ret
 end
 
 function Chitas:goToChapter(chapter)
@@ -134,7 +147,9 @@ function Chitas:onChumash()
     if self.ui.view and self.ui.toc.toc ~= nil and self.ui.document.file == root .. parshah .. ".epub" then
         self:goToChapter(parshah:gsub("_", " ") .. " - " .. day)
     else
-        self:switchToShuir(root, parshah)
+        if self:switchToShuir(root, parshah) then
+            Chitas.chapter = parshah:gsub("_", " ") .. " - " .. day
+        end
     end
 end
 
