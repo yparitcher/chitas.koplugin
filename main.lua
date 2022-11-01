@@ -26,7 +26,6 @@ require("ffi/rtc_h")
 local Chitas = Widget:extend{
     name = "chitas",
     base = (G_reader_settings:readSetting("home_dir") or require("apps/filemanager/filemanagerutil").getDefaultDir()) .. "/epub/",
-    chapter = nil,
 }
 
 function Chitas:onDispatcherRegisterActions()
@@ -34,14 +33,6 @@ function Chitas:onDispatcherRegisterActions()
     Dispatcher:registerAction("shnaimmikrah", {category="none", event="ShnaimMikrah", title=_("Shnaim Mikrah"), general=true,})
     Dispatcher:registerAction("rambam", {category="none", event="Rambam", title=_("Rambam"), general=true,})
     Dispatcher:registerAction("tanya", {category="none", event="Tanya", title=_("Tanya"), general=true,})
-end
-
-function Chitas:onReaderReady()
-    if Chitas.chapter then
-        self:goToChapter(Chitas.chapter)
-        Chitas.chapter = nil
-    end
-    self:displayTanya()
 end
 
 function Chitas:init()
@@ -94,6 +85,8 @@ function Chitas:displayTanya()
     return false
 end
 
+Chitas.onReaderReady = Chitas.displayTanya
+
 function ReadHistory:removeItemByDirectory(directory)
     assert(self ~= nil)
     for i=1, #self.hist do
@@ -110,17 +103,20 @@ function Chitas:isNotRecent(file_path)
     return os.time() - mtime > 604800
 end
 
-function Chitas:switchToShuir(path, name)
+function Chitas:switchToShuir(path, name, chapter)
     local file = path .. name .. ".epub"
-    local ret
     if util.fileExists(file) then
-        ret = self:isNotRecent(file)
+        if self:isNotRecent(file) and chapter then
+            Chitas.onReaderReady = function()
+                Chitas:goToChapter(chapter)
+                Chitas.onReaderReady = Chitas.displayTanya
+            end
+        end
         local ReaderUI = require("apps/reader/readerui")
         ReaderUI:showReader(file)
         ReadHistory:removeItemByDirectory(path)
     end
     self:popup(name, 1)
-    return ret
 end
 
 function Chitas:goToChapter(chapter)
@@ -144,12 +140,11 @@ end
 function Chitas:onChumash()
     local root = self.base .. "חומש/"
     local parshah, day = self:getParshah()
+    local chapter = parshah:gsub("_", " ") .. " - " .. day
     if self.ui.view and self.ui.toc.toc ~= nil and self.ui.document.file == root .. parshah .. ".epub" then
-        self:goToChapter(parshah:gsub("_", " ") .. " - " .. day)
+        self:goToChapter(chapter)
     else
-        if self:switchToShuir(root, parshah) then
-            Chitas.chapter = parshah:gsub("_", " ") .. " - " .. day
-        end
+        self:switchToShuir(root, parshah, chapter)
     end
 end
 
