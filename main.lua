@@ -26,6 +26,7 @@ require("ffi/rtc_h")
 local Chitas = Widget:extend{
     name = "chitas",
     base = (G_reader_settings:readSetting("home_dir") or require("apps/filemanager/filemanagerutil").getDefaultDir()) .. "/epub/",
+    readyChapter = nil,
 }
 
 function Chitas:onDispatcherRegisterActions()
@@ -85,7 +86,14 @@ function Chitas:displayTanya()
     return false
 end
 
-Chitas.onReaderReady = Chitas.displayTanya
+function Chitas:onReaderReady()
+    if Chitas.readyChapter then
+        self:goToChapter(Chitas.readyChapter)
+        Chitas.readyChapter = nil
+    else
+        self:displayTanya()
+    end
+end
 
 function ReadHistory:removeItemByDirectory(directory)
     assert(self ~= nil)
@@ -107,10 +115,7 @@ function Chitas:switchToShuir(path, name, chapter)
     local file = path .. name .. ".epub"
     if util.fileExists(file) then
         if self:isNotRecent(file) and chapter then
-            Chitas.onReaderReady = function()
-                Chitas:goToChapter(chapter)
-                Chitas.onReaderReady = Chitas.displayTanya
-            end
+            Chitas.readyChapter = chapter
         end
         local ReaderUI = require("apps/reader/readerui")
         ReaderUI:showReader(file)
