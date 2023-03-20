@@ -9,7 +9,6 @@ if not libzmanim then
 end
 
 local Dispatcher = require("dispatcher")
-local DocSettings = require("docsettings")
 local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local Font = require("ui/font")
@@ -107,7 +106,9 @@ function ReadHistory:removeItemByDirectory(directory)
 end
 
 function Chitas:isNotRecent(file_path)
-    local mtime = DocSettings:getLastSaveTime(file_path) or 0
+    local idx = ReadHistory:getIndexByFile(file_path)
+    local hist = idx and ReadHistory.hist[idx]
+    local mtime = hist and hist.time or 0
     return os.time() - mtime > 604800
 end
 
