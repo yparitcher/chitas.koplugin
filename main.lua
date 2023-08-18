@@ -69,8 +69,8 @@ end
 
 function Chitas:getParshah()
     local shuir = self:getShuir(libzmanim.chumash)
-    local _, _, parshah, day = shuir:find("(.-)\n(.-) עם פירש״י")
-    return parshah:gsub(" ", "_"), day
+    local _, _, parshah, day = shuir:find("פרשת (.-)\n(.-) עם פירש״י")
+    return parshah, day
 end
 
 function Chitas:displayTanya()
@@ -144,9 +144,8 @@ function Chitas:onTanya()
 end
 
 function Chitas:onChumash()
-    local root = self.base .. "חומש/"
-    local parshah, day = self:getParshah()
-    local chapter = parshah:gsub("_", " ") .. " - " .. day
+    local root = self.base .. "Chumash_Rashi/"
+    local parshah, chapter = self:getParshah()
     if self.ui.view and self.ui.toc.toc ~= nil and self.ui.document.file == root .. parshah .. ".epub" then
         self:goToChapter(chapter)
     else
@@ -156,7 +155,7 @@ end
 
 function Chitas:onShnaimMikrah()
     local parshah, _ = self:getParshah()
-    self:switchToShuir(self.base .. "שניים מקרא/", parshah)
+    self:switchToShuir(self.base .. "Shnaim_Mikra/", parshah)
 end
 
 function Chitas:onRambam()
